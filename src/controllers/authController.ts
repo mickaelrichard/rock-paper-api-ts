@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
-import User from "../models/User";
 import { StatusCodes } from "http-status-codes";
+import User from "../models/User";
 
-exports.signup = async (req: Request, res: Response, next: NextFunction) => {
+exports.signup = async (req: Request, res: Response) => {
   const validationErrors = validationResult(req);
+  const { username, email, password } = req.body;
 
   //express validator check
   if (!validationErrors.isEmpty()) {
@@ -13,14 +14,14 @@ exports.signup = async (req: Request, res: Response, next: NextFunction) => {
         msg: error.msg,
       };
     });
-    console.log(req.body);
     return res.status(StatusCodes.UNAUTHORIZED).json({ errors, data: null });
   }
-  const { username, email, password } = req.body;
 
+  //check if email and usename exist
   const user = await User.findOne({ email });
   const userUsername = await User.findOne({ username });
 
+  //return error if user exist
   if (user) {
     return res.status(StatusCodes.CONFLICT).json({
       errors: [
@@ -32,6 +33,7 @@ exports.signup = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
+  //return error if username exist
   if (userUsername) {
     return res.status(StatusCodes.CONFLICT).json({
       errors: [
@@ -43,13 +45,17 @@ exports.signup = async (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
+  //create new user
   const newUser = await User.create({
     username,
     email,
     password,
   });
+
+  //create JWT token
   const token = newUser.createJWT();
 
+  //return response => no error, token, newly created user
   return res.status(StatusCodes.CREATED).json({
     errors: [],
     data: {
@@ -63,7 +69,7 @@ exports.signup = async (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-exports.login = async (req: Request, res: Response, next: NextFunction) => {
+exports.login = async (req: Request, res: Response) => {
   const validationErrors = validationResult(req);
   const { email, password } = req.body;
 
@@ -80,6 +86,7 @@ exports.login = async (req: Request, res: Response, next: NextFunction) => {
   //check if user exist
   const user = await User.findOne({ email }).select("+password");
 
+  //return error is user doesn't exist
   if (!user) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       errors: [
@@ -90,8 +97,10 @@ exports.login = async (req: Request, res: Response, next: NextFunction) => {
       data: null,
     });
   }
+  //check if db password match the logged password
   const isPasswordCorrect = await user.comparePassword(password);
 
+  //return error if passwords dont match
   if (!isPasswordCorrect) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       errors: [
@@ -102,9 +111,13 @@ exports.login = async (req: Request, res: Response, next: NextFunction) => {
       data: null,
     });
   }
+  //create JWT token
   const token = user.createJWT();
+
+  //hide the db password
   user.password = undefined;
 
+  //return response => no error, token, logged user
   res.status(StatusCodes.OK).json({
     errors: [],
     data: {

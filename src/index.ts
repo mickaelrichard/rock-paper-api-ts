@@ -1,12 +1,18 @@
 import express from "express";
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import notFoundMiddleware from "./middleware/not-found";
 import dotenv from "dotenv";
 import cors from "cors";
+import notFoundMiddleware from "./middleware/not-found";
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+
+//security mdlw => cannot import packages using import :/
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const mongoSanitize = require("express-mongo-sanitize");
+
+//init
 dotenv.config();
 const app = express();
-app.use(express.json());
 
 //db
 import connectDB from "./db/connect";
@@ -14,6 +20,9 @@ import connectDB from "./db/connect";
 //middlewares
 app.use(express.json());
 app.use(cors());
+app.use(helmet());
+app.use(xss());
+app.use(mongoSanitize());
 
 //routes
 app.use("/api/v1/user", userRoutes);
@@ -22,7 +31,7 @@ app.use("/api/v1/auth", authRoutes);
 //not found
 app.use(notFoundMiddleware);
 
-//start server
+// server
 const port = process.env.PORT || 8080;
 
 const start = async () => {
@@ -36,4 +45,5 @@ const start = async () => {
   }
 };
 
+//start server
 start();

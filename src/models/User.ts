@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
-const { Schema } = mongoose;
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+const { Schema } = mongoose;
 
 const userSchema = new Schema({
   username: {
@@ -41,7 +41,7 @@ userSchema.pre("save", async function () {
 //create jwt token
 userSchema.methods.createJWT = function () {
   return jwt.sign({ email: this.email }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.JWT_LIFETIME,
+    expiresIn: process.env.JWT_LIFETIME as string,
   });
 };
 //compare login password with crypted password

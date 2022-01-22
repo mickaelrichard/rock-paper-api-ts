@@ -1,6 +1,6 @@
+import { StatusCodes } from "http-status-codes";
 import { Response, NextFunction } from "express";
 import JWT from "jsonwebtoken";
-import { StatusCodes } from "http-status-codes";
 
 export const checkAuth = async (
   req: any,
@@ -9,6 +9,7 @@ export const checkAuth = async (
 ) => {
   let token;
 
+  //get token
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -16,23 +17,27 @@ export const checkAuth = async (
     token = req.headers.authorization.split(" ")[1];
   }
 
+  //return error if no token
   if (!token) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       errors: [
         {
-          msg: "unauthorized",
+          msg: "missing token",
         },
       ],
     });
   }
+
+  //verify the token
   try {
     const user = JWT.verify(token, process.env.JWT_SECRET as string) as {
       email: string;
     };
-
+    //assign the user email to the request
     req.user = user.email;
     next();
   } catch (error) {
+    //return error if issue in the process
     return res.status(StatusCodes.UNAUTHORIZED).json({
       errors: [
         {
