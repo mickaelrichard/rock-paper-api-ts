@@ -13,9 +13,16 @@ const apiLimiter = rateLimiter({
 
 router.post(
   "/signup",
-  body("username").isLength({ min: 3 }).withMessage("The username is invalid"),
+  body("username")
+    .isLength({ min: 3 })
+    .withMessage("The username must be at least 3 characters long"),
+  body("username")
+    .isLength({ max: 12 })
+    .withMessage("The username must be less than 12 characters long"),
   body("email").isEmail().withMessage("The email is invalid"),
-  body("password").isLength({ min: 5 }).withMessage("The password is invalid"),
+  body("password")
+    .isLength({ min: 5 })
+    .withMessage("The password must be at least 5 characters long"),
   apiLimiter,
   authController.signup
 );
@@ -23,7 +30,11 @@ router.post(
 router.post(
   "/login",
   body("email").not().isEmpty().withMessage("The email is required"),
-  body("password").not().isEmpty().withMessage("The password is required"),
+  body("email").isEmail().withMessage("The email is invalid"),
+  body("password")
+    .not()
+    .isEmpty()
+    .withMessage("The password must be at least 5 characters long"),
   apiLimiter,
   authController.login
 );

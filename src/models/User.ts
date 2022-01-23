@@ -8,8 +8,8 @@ const userSchema = new Schema({
   username: {
     type: String,
     required: [true, "Please provide username"],
-    minlength: 3,
-    maxlength: 20,
+    minLength: [3, "username must be at least 3 characters long"],
+    maxLength: [12, "username must be less than 12 characters long"],
     trim: true,
     unique: true,
   },
@@ -25,8 +25,8 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: true,
-    min: 5,
+    required: [true, "Please provide password"],
+    minLength: [5, "password must be at least 5 characters long"],
     select: false,
   },
 });

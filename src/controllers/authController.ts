@@ -105,7 +105,7 @@ exports.login = async (req: Request, res: Response) => {
     return res.status(StatusCodes.UNAUTHORIZED).json({
       errors: [
         {
-          msg: "Password incorrects",
+          msg: "Password incorrect",
         },
       ],
       data: null,
